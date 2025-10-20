@@ -15,10 +15,8 @@ export default function DashboardClient({ initialFeedback }: { initialFeedback: 
 
   const handleAddNewFeedback = (newFeedback: Feedback) => {
     // In a real app, you would likely re-fetch the list or add the new item.
-    // Since the API doesn't return the full object, we'll just log it for now.
-    console.log("New feedback received, consider refreshing the page to see it in the list.", newFeedback);
-    // For a better UX without a GET endpoint, we could prepend a partial object,
-    // but that would lead to inconsistent data.
+    // For now, we'll prepend the new feedback to the list.
+    setFeedbacks([newFeedback, ...feedbacks]);
   };
 
   return (
