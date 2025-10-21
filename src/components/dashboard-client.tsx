@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import type { Feedback } from "@/lib/types";
 import { DashboardHeader } from "@/components/dashboard/header";
 import { OverviewCards } from "@/components/dashboard/overview-cards";
@@ -8,15 +8,44 @@ import { ScoreDistributionChart } from "@/components/dashboard/score-distributio
 import { FeedbackTable } from "@/components/dashboard/feedback-table";
 import { FeedbackDetailView } from "@/components/dashboard/feedback-detail-view";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useToast } from "@/hooks/use-toast";
 
 export default function DashboardClient({ initialFeedback }: { initialFeedback: Feedback[] }) {
   const [feedbacks, setFeedbacks] = useState<Feedback[]>(initialFeedback);
   const [selectedFeedback, setSelectedFeedback] = useState<Feedback | null>(initialFeedback[0] ?? null);
+  const { toast } = useToast();
 
-  const handleAddNewFeedback = (newFeedback: Feedback) => {
-    // In a real app, you would likely re-fetch the list or add the new item.
-    // For now, we'll prepend the new feedback to the list.
-    setFeedbacks([newFeedback, ...feedbacks]);
+  const fetchFeedbacks = useCallback(async () => {
+    try {
+      const response = await fetch('https://feedback-ai-git-main-nefigarcias-projects.vercel.app/api/feedback', { cache: 'no-store' });
+      if (!response.ok) {
+        throw new Error('Failed to fetch feedback.');
+      }
+      const result = await response.json();
+      const newFeedbacks = result.data || [];
+      setFeedbacks(newFeedbacks);
+      
+      // If a feedback was selected, try to find it in the new list. Otherwise, select the first one.
+      const currentlySelectedId = selectedFeedback?.id;
+      if (currentlySelectedId) {
+        const reselected = newFeedbacks.find((f: Feedback) => f.id === currentlySelectedId);
+        setSelectedFeedback(reselected || newFeedbacks[0] || null);
+      } else {
+        setSelectedFeedback(newFeedbacks[0] || null);
+      }
+
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Uh oh! Could not refresh data.",
+        description: error instanceof Error ? error.message : "There was a problem fetching the latest feedback.",
+      });
+    }
+  }, [toast, selectedFeedback?.id]);
+
+  const handleAddNewFeedback = () => {
+    // After a new feedback is added via the form, re-fetch the entire list
+    fetchFeedbacks();
   };
 
   return (

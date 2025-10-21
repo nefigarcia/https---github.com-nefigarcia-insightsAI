@@ -26,7 +26,6 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
-import type { Feedback } from "@/lib/types";
 
 const formSchema = z.object({
   message: z.string().min(10, {
@@ -36,7 +35,7 @@ const formSchema = z.object({
   }),
 });
 
-export function FeedbackForm({ children, onNewFeedback }: { children: ReactNode; onNewFeedback: (feedback: Feedback) => void; }) {
+export function FeedbackForm({ children, onNewFeedback }: { children: ReactNode; onNewFeedback: () => void; }) {
   const [open, setOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
@@ -70,19 +69,8 @@ export function FeedbackForm({ children, onNewFeedback }: { children: ReactNode;
         description: "Your feedback has been successfully analyzed and saved.",
       });
 
-      // The backend POST returns the analysis, not the full DB object.
-      // We pass a partial object to the parent, but can't fully add it to the list without a GET endpoint.
-      const pseudoFeedback = {
-        ...result.data,
-        id: Date.now(),
-        message: values.message,
-        doctor_score: result.data.doctor,
-        nurse_score: result.data.nurse,
-        hospital_score: result.data.hospital,
-        notes_analysis: result.data.notes,
-        created_at: new Date().toISOString(),
-      };
-      onNewFeedback(pseudoFeedback);
+      // Trigger the parent component to re-fetch the data
+      onNewFeedback();
       
       setOpen(false);
       form.reset();
