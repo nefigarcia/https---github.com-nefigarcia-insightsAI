@@ -17,7 +17,7 @@ export default function DashboardClient({ initialFeedback }: { initialFeedback: 
 
   const fetchFeedbacks = useCallback(async () => {
     try {
-      const response = await fetch('https://feedback-ai-git-main-nefigarcias-projects.vercel.app/api/feedback', { cache: 'no-store' });
+      const response = await fetch('https://feedback-ai-git-main-nefigarcias-projects.vercel.app/api/feedback/list', { cache: 'no-store' });
       if (!response.ok) {
         throw new Error('Failed to fetch feedback.');
       }

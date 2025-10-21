@@ -3,7 +3,7 @@ import type { Feedback } from "@/lib/types";
 
 async function getFeedbacks(): Promise<Feedback[]> {
   try {
-    const response = await fetch('https://feedback-ai-git-main-nefigarcias-projects.vercel.app/api/feedback', {
+    const response = await fetch('https://feedback-ai-git-main-nefigarcias-projects.vercel.app/api/feedback/list', {
       cache: 'no-store', // Ensure we get fresh data on every request
     });
     
