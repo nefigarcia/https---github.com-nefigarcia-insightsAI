@@ -50,7 +50,7 @@ export function FeedbackForm({ children, onNewFeedback }: { children: ReactNode;
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsLoading(true);
     try {
-      const response = await fetch('https://feedback-ai-git-main-nefigarcias-projects.vercel.app/api/feedback', {
+      const response = await fetch('https://feedback-ai-git-main-nefigarcias-projects.vercel.app/api/feedback/index', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
