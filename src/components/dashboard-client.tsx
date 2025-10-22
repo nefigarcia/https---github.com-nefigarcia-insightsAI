@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import type { Feedback } from "@/lib/types";
 import { DashboardHeader } from "@/components/dashboard/header";
 import { OverviewCards } from "@/components/dashboard/overview-cards";
@@ -12,10 +12,12 @@ import { useToast } from "@/hooks/use-toast";
 
 export default function DashboardClient({ initialFeedback }: { initialFeedback: Feedback[] }) {
   const [feedbacks, setFeedbacks] = useState<Feedback[]>(initialFeedback);
-  const [selectedFeedback, setSelectedFeedback] = useState<Feedback | null>(initialFeedback[0] ?? null);
+  const [selectedFeedback, setSelectedFeedback] = useState<Feedback | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
   const fetchFeedbacks = useCallback(async () => {
+    setIsLoading(true);
     try {
       const response = await fetch('https://feedback-ai-git-main-nefigarcias-projects.vercel.app/api/feedback/list', { cache: 'no-store' });
       if (!response.ok) {
@@ -25,7 +27,6 @@ export default function DashboardClient({ initialFeedback }: { initialFeedback: 
       const newFeedbacks = result.data || [];
       setFeedbacks(newFeedbacks);
       
-      // If a feedback was selected, try to find it in the new list. Otherwise, select the first one.
       const currentlySelectedId = selectedFeedback?.id;
       if (currentlySelectedId) {
         const reselected = newFeedbacks.find((f: Feedback) => f.id === currentlySelectedId);
@@ -40,8 +41,17 @@ export default function DashboardClient({ initialFeedback }: { initialFeedback: 
         title: "Uh oh! Could not refresh data.",
         description: error instanceof Error ? error.message : "There was a problem fetching the latest feedback.",
       });
+    } finally {
+      setIsLoading(false);
     }
   }, [toast, selectedFeedback?.id]);
+
+  useEffect(() => {
+    fetchFeedbacks();
+    // We only want to run this on initial mount, so we pass an empty dependency array.
+    // The fetchFeedbacks function is stable due to useCallback.
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
 
   const handleAddNewFeedback = () => {
     // After a new feedback is added via the form, re-fetch the entire list
@@ -61,11 +71,17 @@ export default function DashboardClient({ initialFeedback }: { initialFeedback: 
               <CardTitle className="font-headline">Recent Feedback</CardTitle>
             </CardHeader>
             <CardContent className="pl-2">
-              <FeedbackTable 
-                feedbacks={feedbacks} 
-                selectedFeedback={selectedFeedback}
-                onSelectFeedback={setSelectedFeedback} 
-              />
+              {isLoading ? (
+                <div className="flex items-center justify-center h-[450px]">
+                  <p className="text-muted-foreground">Loading feedback...</p>
+                </div>
+              ) : (
+                <FeedbackTable 
+                  feedbacks={feedbacks} 
+                  selectedFeedback={selectedFeedback}
+                  onSelectFeedback={setSelectedFeedback} 
+                />
+              )}
             </CardContent>
           </Card>
           <div className="lg:col-span-3 flex flex-col gap-4 md:gap-8">
