@@ -13,20 +13,37 @@ import type { Feedback } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 
-const getScoreBadgeVariant = (score: number) => {
+const getScoreBadgeVariant = (score: number | string) => {
+  if (score === "N/A") return "default"; // neutral gray style for N/A
   if (score >= 8) return "success";
   if (score >= 5) return "default";
   return "destructive";
 };
 
-// We'll add custom variants for the badge
+// Custom badge color variants
 const badgeVariants = {
-  success: "bg-green-100 text-green-800 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-900",
-  default: "bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-900/20 dark:text-amber-400 dark:border-amber-900",
-  destructive: "bg-red-100 text-red-800 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-900"
-}
+  success:
+    "bg-green-100 text-green-800 border-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-900",
+  default:
+    "bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-900/20 dark:text-gray-400 dark:border-gray-800",
+  destructive:
+    "bg-red-100 text-red-800 border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-900",
+};
 
-export function FeedbackTable({ feedbacks, selectedFeedback, onSelectFeedback }: { feedbacks: Feedback[], selectedFeedback: Feedback | null, onSelectFeedback: (feedback: Feedback) => void }) {
+export function FeedbackTable({
+  feedbacks,
+  selectedFeedback,
+  onSelectFeedback,
+}: {
+  feedbacks: Feedback[];
+  selectedFeedback: Feedback | null;
+  onSelectFeedback: (feedback: Feedback) => void;
+}) {
+  const displayScore = (score: number) => {
+    // Convert 0 or null to N/A for display
+    return score === 0 || score == null ? "N/A" : score;
+  };
+
   return (
     <div className="relative w-full overflow-auto h-[450px]">
       <Table>
@@ -41,29 +58,60 @@ export function FeedbackTable({ feedbacks, selectedFeedback, onSelectFeedback }:
         </TableHeader>
         <TableBody>
           {feedbacks.map((feedback) => (
-            <TableRow 
-              key={feedback.id} 
-              className={cn("cursor-pointer", selectedFeedback?.id === feedback.id && "bg-muted/50")}
+            <TableRow
+              key={feedback.id}
+              className={cn(
+                "cursor-pointer",
+                selectedFeedback?.id === feedback.id && "bg-muted/50"
+              )}
               onClick={() => onSelectFeedback(feedback)}
             >
               <TableCell className="max-w-[250px] truncate">
                 {feedback.message}
               </TableCell>
+
+              {/* Doctor */}
               <TableCell className="text-center">
-                 <Badge variant="outline" className={cn(badgeVariants[getScoreBadgeVariant(feedback.doctor_score)])}>
-                  {feedback.doctor_score}
+                <Badge
+                  variant="outline"
+                  className={cn(
+                    badgeVariants[
+                      getScoreBadgeVariant(displayScore(feedback.doctor_score))
+                    ]
+                  )}
+                >
+                  {displayScore(feedback.doctor_score)}
                 </Badge>
               </TableCell>
+
+              {/* Nurse */}
               <TableCell className="text-center">
-                <Badge variant="outline" className={cn(badgeVariants[getScoreBadgeVariant(feedback.nurse_score)])}>
-                  {feedback.nurse_score}
+                <Badge
+                  variant="outline"
+                  className={cn(
+                    badgeVariants[
+                      getScoreBadgeVariant(displayScore(feedback.nurse_score))
+                    ]
+                  )}
+                >
+                  {displayScore(feedback.nurse_score)}
                 </Badge>
               </TableCell>
+
+              {/* Hospital */}
               <TableCell className="text-center">
-                <Badge variant="outline" className={cn(badgeVariants[getScoreBadgeVariant(feedback.hospital_score)])}>
-                  {feedback.hospital_score}
+                <Badge
+                  variant="outline"
+                  className={cn(
+                    badgeVariants[
+                      getScoreBadgeVariant(displayScore(feedback.hospital_score))
+                    ]
+                  )}
+                >
+                  {displayScore(feedback.hospital_score)}
                 </Badge>
               </TableCell>
+
               <TableCell className="text-right text-xs text-muted-foreground whitespace-nowrap">
                 {format(new Date(feedback.created_at), "MMM d, yyyy")}
               </TableCell>
